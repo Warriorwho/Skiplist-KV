@@ -176,10 +176,11 @@ int Skiplist<K, V>::insert_element(const K key, const V value)
         // if random level is greater than skiplist's current level , initialize update value with pointer to header
         if (random_level > _skiplist_level)
         {
-            for (int i = _skiplist_level; i < random_level + 1; i++)
+            for (int i = _skiplist_level + 1; i < random_level + 1; i++)
             {
                 update[i] = _header;
             }
+            _skiplist_level = random_level;
         }
 
         // create new node with random level generated
@@ -311,7 +312,7 @@ void Skiplist<K, V>::delete_element(K key)
     if (current != NULL && current->get_key() == key)
     {
         // start for lowest level and delete the current node of each level
-        for (int i = 0; i < _skiplist_level; i++)
+        for (int i = 0; i <= _skiplist_level; i++)
         {
             // if at level i, next node is no target node, breake the loop
             if (update[i]->forward[i] != current)
@@ -319,6 +320,7 @@ void Skiplist<K, V>::delete_element(K key)
 
             update[i]->forward[i] = current->forward[i];
         }
+        delete current;
         // remove levels which has no elements
         while (_skiplist_level > 0 && _header->forward[_skiplist_level] == 0)
         {
@@ -357,9 +359,9 @@ bool Skiplist<K, V>::search_element(K key)
     Node<K, V> *current = _header;
 
     // Search from the highest level of skiplist
-    for (int i = _skiplist_level; i > 0; i--)
+    for (int i = _skiplist_level; i >= 0; i--)
     {
-        while (current->forward[i] != NULL && current->get_key() < key)
+        while (current->forward[i] != NULL && current->forward[i]->get_key() < key)
         {
             current = current->forward[i];
         }
@@ -369,8 +371,10 @@ bool Skiplist<K, V>::search_element(K key)
 
     // if the key match, we find it
     if (current && current->get_key() == key)
+    {
         std::cout << "Found key: " << key << ", value: " << current->get_value() << std::endl;
-    return true;
+        return true;
+    }
 
     std::cout << "Not Found Key:" << key << std::endl;
     return false;
